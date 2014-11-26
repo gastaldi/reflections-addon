@@ -21,7 +21,11 @@ import org.jboss.forge.addon.projects.ProjectFacet;
 public interface ClassLoaderFacet extends ProjectFacet
 {
    /**
-    * Returns the {@link URLClassLoader} with the {@link URL}s that this project depends on
+    * Returns the {@link URLClassLoader} with the {@link URL}s that this project depends on.
+    * 
+    * WARNING: Remember to close this {@link URLClassLoader} when no longer in use.
+    * <p/>
+    * Leaving it open could introduce memory leaks.
     */
    URLClassLoader getClassLoader();
 
