@@ -1,62 +1,67 @@
 == reflections
 :idprefix: id_ 
-(choose one, do not modify, then add a second sentence with a brief description, starting with - "The reflections addon enables blah blah...)
-This addon provides *standalone* functionality, and *exports services* for use in other addons. 
-This addon provides *standalone* functionality.
-This addon *exports services* for use in other addons. 
-This addon *provides classes* for use in other addons. 
-This addon is a 'Furnace container' that provides *lifecycle* and *service registry* support for dependent addons.
+This addon *exports services* for use in other addons.
+It enables the usage of the Reflections (https://github.com/ronmamo/reflections) libraries as Facets in Forge projects. 
+Reflections scans your classpath, indexes the metadata, allows you to query it on runtime and may save and collect that information for many modules within your project.
+
+Using Reflections you can query your metadata such as:
+
+* get all subtypes of some type
+* all types/members annotated with some annotation, optionally with annotation parameters matching
+* get all resources matching a regular expression
+* get all methods with specific signature including parameters, parameter annotations and return type
         
-=== Dependencies: None (or)
 === Depends on
 [options="header"]
 |===
 |Addon |Exported |Optional
-|DEP1
+|projects
 |yes
 |no
-|DEP2
+
+|facets
 |yes
-|yes
+|no
 |===
 
 == Setup
 This Addon requires the following installation steps.
+
 === Add configuration to pom.xml 
 To use this addon, you must add it as a dependency in the *pom.xml* of your `forge-addon` classified artifact:
 (Make sure the dependency is put all the way to the left, and uses 3 spaces for indentation of GAV)
 [source,xml]
 ----
 <dependency>
-   <groupId>com.george.addon</groupId>
+   <groupId>me.gastaldi.forge</groupId>
    <artifactId>reflections</artifactId>
    <classifier>forge-addon</classifier>
    <version>${version}</version>
 </dependency>
 ----
 == Features
-ABCFactory for simple ABC blah:: 
-Allows for blah blah
+ReflectionsFacet::
+Provides a Reflections object from the project classloader.
 +
 [source,java]
 ----
-@Inject private ABCFactory factory;
-ABC abc = factory.createABC();
+ReflectionsFacet facet = project.getFacet(ReflectionsFacet.class);
+Reflections reflections = facet.getReflections();
+
+//Returns all classes in the project (including its dependencies) annotated with @Entity
+Set<Class<?>> entities = reflections.getTypesAnnotatedWith(Entity.class);
+
+//Returns all classes in the project (including its dependencies) that is a sub-type of Exception
+Set<Class<? extends Exception>> subTypes = reflections.getSubTypesOf(Exception.class);
+
 ----
-+
-[TIP] 
-====
-If your addon uses a container that does not support "@Inject" annotations, services such as the `ABCFactory` may also be 
-accessed via the `AddonRegistry`:
-----
-Imported<ABCFactory> imported = addonRegistry.getServices(ABCFactory.class);
-ABCFactory factory = imported.get();
-----
-==== 
-Creating a new XYZ instance:: 
-Causes XYZ to occur
+
+ClassLoaderFacet:: 
+This addon introduces a ClassLoaderFacet that provides a URLClassLoader from the project dependencies.
 +
 [source,java]
 ----
-XYZ xyz = factory.createXYZ();
+ClassLoaderFacet facet = project.getFacet(ClassLoaderFacet.class);
+// This classloader contains all the project classes and their dependencies
+URLClassLoader classLoader = facet.getClassLoader();
 ----
