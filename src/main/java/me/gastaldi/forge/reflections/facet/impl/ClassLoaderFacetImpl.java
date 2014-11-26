@@ -1,4 +1,11 @@
-package me.gastaldi.forge.reflections.facet;
+/**
+ * Copyright 2014 Red Hat, Inc. and/or its affiliates.
+ *
+ * Licensed under the Eclipse Public License version 1.0, available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ */
+
+package me.gastaldi.forge.reflections.facet.impl;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -8,6 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import me.gastaldi.forge.reflections.facet.ClassLoaderFacet;
+
 import org.jboss.forge.addon.dependencies.Dependency;
 import org.jboss.forge.addon.facets.AbstractFacet;
 import org.jboss.forge.addon.facets.constraints.FacetConstraint;
@@ -16,17 +25,18 @@ import org.jboss.forge.addon.projects.facets.DependencyFacet;
 import org.jboss.forge.addon.projects.facets.PackagingFacet;
 import org.jboss.forge.addon.resource.FileResource;
 import org.jboss.forge.addon.resource.Resource;
-import org.reflections.Reflections;
-import org.reflections.util.ConfigurationBuilder;
 
+/**
+ * Implementation of the {@link ClassLoaderFacet} interface
+ * 
+ * @author <a href="ggastald@redhat.com">George Gastaldi</a>
+ */
 @FacetConstraint(DependencyFacet.class)
-class ReflectionsFacetImpl extends AbstractFacet<Project> implements
-         ReflectionsFacet
+class ClassLoaderFacetImpl extends AbstractFacet<Project> implements
+         ClassLoaderFacet
 {
    private static final Logger log = Logger
-            .getLogger(ReflectionsFacetImpl.class.getName());
-
-   private Reflections reflections;
+            .getLogger(ClassLoaderFacetImpl.class.getName());
 
    @Override
    public boolean install()
@@ -41,23 +51,13 @@ class ReflectionsFacetImpl extends AbstractFacet<Project> implements
    }
 
    @Override
-   public Reflections getReflections()
-   {
-      if (reflections == null)
-      {
-         initializeReflections();
-      }
-      return reflections;
-   }
-
-   private void initializeReflections()
+   public URLClassLoader getClassLoader()
    {
       Project project = getFaceted();
       DependencyFacet facet = project.getFacet(DependencyFacet.class);
       List<Dependency> effectiveDependencies = facet
                .getEffectiveDependencies();
       List<URL> urls = new ArrayList<>();
-      ConfigurationBuilder configuration = new ConfigurationBuilder();
       // Add project dependencies
       for (Dependency dependency : effectiveDependencies)
       {
@@ -97,9 +97,9 @@ class ReflectionsFacetImpl extends AbstractFacet<Project> implements
                      + e.getMessage());
          }
       }
-      // Project Classloader. May introduce memory leaks
-      URLClassLoader classLoader = new URLClassLoader(urls.toArray(new URL[urls.size()]));
-      configuration.setUrls(urls).addClassLoader(classLoader);
-      this.reflections = new Reflections(configuration);
+      // Project Classloader. May introduce memory leaks if not closed properly
+      URLClassLoader urlClassLoader = new URLClassLoader(urls.toArray(new URL[urls.size()]));
+      return urlClassLoader;
    }
+
 }
