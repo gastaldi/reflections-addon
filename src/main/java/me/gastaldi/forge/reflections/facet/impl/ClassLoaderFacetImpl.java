@@ -98,7 +98,7 @@ class ClassLoaderFacetImpl extends AbstractFacet<Project> implements
          }
       }
       // Project Classloader. May introduce memory leaks if not closed properly
-      URLClassLoader urlClassLoader = new URLClassLoader(urls.toArray(new URL[urls.size()]));
+      URLClassLoader urlClassLoader = URLClassLoader.newInstance(urls.toArray(new URL[urls.size()]));
       return urlClassLoader;
    }
 
